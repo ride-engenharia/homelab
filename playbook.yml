@@ -1,0 +1,7 @@
+
+- hosts: local
+  vars_files:
+    - ansible-vars/main.yml
+  roles:
+    - system
+    - podman

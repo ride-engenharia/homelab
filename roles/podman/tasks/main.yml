@@ -1,0 +1,52 @@
+---
+- name: Ensure podman.socket is enabled and started for the user
+  ansible.builtin.systemd:
+    name: podman.socket
+    scope: user
+    enabled: true
+    state: started
+  register: podman_socket_result
+
+- name: Ensure podman network 'web' exists
+  containers.podman.podman_network:
+    name: web
+    state: present
+
+- name: Get UID of local_user
+  ansible.builtin.command: id -u {{ local_user }}
+  register: local_user_id
+  changed_when: false
+
+- name: Set fact for local_user_uid
+  ansible.builtin.set_fact:
+    local_user_uid: "{{ local_user_id.stdout }}"
+
+- name: Ensure podman volumes/directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ podman_shared_volumes }}"
+
+- name: Adjust ownership inside Podman namespace for directories
+  ansible.builtin.command: >
+    podman unshare chown -R {{ local_user_uid }}:{{ local_user_uid }} {{ item }}
+  loop: "{{ podman_shared_volumes }}"
+  become: no
+
+- name: Set podman_sock path dynamically
+  ansible.builtin.set_fact:
+    podman_sock: "/run/user/{{ local_user_uid }}/podman/podman.sock"
+
+- name: Check if podman.sock exists
+  ansible.builtin.stat:
+    path: "{{ podman_sock }}"
+  register: podman_sock_stat
+  check_mode: no
+
+- name: Adjust ownership for podman.sock inside Podman namespace
+  ansible.builtin.command: >
+    podman unshare chown {{ local_user_uid }}:{{ local_user_uid }} {{ podman_sock }}
+  become: no
+  when: podman_sock_stat.stat.exists
+

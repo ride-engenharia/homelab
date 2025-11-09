@@ -1,0 +1,59 @@
+# --- System/Editor files ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- Databases ---
+db/
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+*.db
+*.db-shm
+*.db-wal
+
+# --- Logs ---
+.log*
+log/
+logs/
+
+# --- Secrets ---
+.env
+secrets.yaml
+
+# --- Temporary or local files ---
+*.pid
+*.pyc
+*.swp
+*.bak
+*.tmp
+
+# --- Backups ---
+*.tar
+*.zip
+*.backup
+.backups/
+
+# --- Home Assistant files ---
+.cache/
+.cloud/
+.config/
+.storage/
+.ha_run.lock
+.HA_VERSION
+deps/
+tts/
+home-assistant.log*
+
+# --- ip-sync files ---
+last-ip
+
+# --- Jellyfin files ---
+jellyfin/config/data/
+jellyfin/config/metadata/
+jellyfin/config/root/
+
+# --- Traefik files ---
+traefik/letsencrypt/acme.json
