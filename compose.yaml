@@ -10,47 +10,47 @@ services:
       - /mnt/homelab-data/registry/data:/var/lib/registry:Z
       - ./registry/config.yml:/etc/distribution/config.yml:Z
 
-  jellyfin:
-    container_name: jellyfin
-    image: jellyfin/jellyfin
-    restart: 'unless-stopped'
-    ports:
-      - 8096:8096/tcp
-      - 7359:7359/udp
-    volumes:
-      - ./jellyfin/config:/config
-      - /mnt/homelab-data/jellyfin/cache:/cache
-      - /mnt/homelab-data/jellyfin/metadata:/metadata
-      - type: bind
-        source: /mnt/homelab-data/movies
-        target: /media/movies
-      - type: bind
-        source: /mnt/homelab-data/shows
-        target: /media/shows
-      # Optional - extra fonts to be used during transcoding with subtitle burn-in
-      # - type: bind
-      #   source: /path/to/fonts
-      #   target: /usr/local/share/fonts/custom
-      #   read_only: true
-    # Optional - alternative address used for autodiscovery
-    # environment:
-    #   - JELLYFIN_PublishedServerUrl=http://example.com
-    # Optional - may be necessary for docker healthcheck to pass if running in host network mode
-    # extra_hosts:
-    #   - 'host.docker.internal:host-gateway'
+  # jellyfin:
+  #   container_name: jellyfin
+  #   image: jellyfin/jellyfin
+  #   restart: 'unless-stopped'
+  #   ports:
+  #     - 8096:8096/tcp
+  #     - 7359:7359/udp
+  #   volumes:
+  #     - ./jellyfin/config:/config
+  #     - /mnt/homelab-data/jellyfin/cache:/cache
+  #     - /mnt/homelab-data/jellyfin/metadata:/metadata
+  #     - type: bind
+  #       source: /mnt/homelab-data/movies
+  #       target: /media/movies
+  #     - type: bind
+  #       source: /mnt/homelab-data/shows
+  #       target: /media/shows
+  #     # Optional - extra fonts to be used during transcoding with subtitle burn-in
+  #     # - type: bind
+  #     #   source: /path/to/fonts
+  #     #   target: /usr/local/share/fonts/custom
+  #     #   read_only: true
+  #   # Optional - alternative address used for autodiscovery
+  #   # environment:
+  #   #   - JELLYFIN_PublishedServerUrl=http://example.com
+  #   # Optional - may be necessary for docker healthcheck to pass if running in host network mode
+  #   # extra_hosts:
+  #   #   - 'host.docker.internal:host-gateway'
 
-  homeassistant:
-    container_name: homeassistant
-    image: "ghcr.io/home-assistant/home-assistant:stable"
-    restart: unless-stopped
-    privileged: true
-    volumes:
-      - ./homeassistant/config:/config
-      - /etc/localtime:/etc/localtime:ro
-    network_mode: host
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
+  # homeassistant:
+  #   container_name: homeassistant
+  #   image: "ghcr.io/home-assistant/home-assistant:stable"
+  #   restart: unless-stopped
+  #   privileged: true
+  #   volumes:
+  #     - ./homeassistant/config:/config
+  #     - /etc/localtime:/etc/localtime:ro
+  #   network_mode: host
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
 
   traefik:
     container_name: traefik

@@ -56,3 +56,35 @@
     owner: "{{ local_user }}"
     group: "{{ local_user }}"
     mode: '0644'
+
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: "/home/{{ local_user }}/.config/containers/systemd"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
+
+- name: Create Quadlet container files
+  ansible.builtin.template:
+    src: "container.quadlet.j2"
+    dest: "/home/{{ local_user }}/.config/containers/systemd/{{ item.name }}.container"
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0644'
+  loop: "{{ podman_quadlets | default([]) }}"
+  register: quadlet_files_result
+
+- name: Reload systemd user daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+    scope: user
+  when: quadlet_files_result.changed
+
+- name: Start and enable Quadlet services
+  ansible.builtin.systemd:
+    name: "{{ item.name }}"
+    state: started
+    enabled: true
+    scope: user
+  loop: "{{ podman_quadlets | default([]) }}"

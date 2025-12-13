@@ -1,0 +1,22 @@
+[Unit]
+Description=homeassistant container
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=ghcr.io/home-assistant/home-assistant:stable
+ContainerName=homeassistant
+Volume=/home/toshio/projects/homelab/homeassistant/config:/config
+Volume=/etc/localtime:/etc/localtime:ro
+Network=host
+PodmanArgs=--privileged
+AddCapability=NET_ADMIN
+AddCapability=NET_RAW
+
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

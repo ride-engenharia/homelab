@@ -4,3 +4,31 @@ podman_shared_volumes:
   - "{{ playbook_dir }}/traefik/letsencrypt"
   - "{{ playbook_dir }}/db/tosh.io"
   - "{{ playbook_dir }}/db/price_history"
+
+podman_quadlets:
+  - name: jellyfin
+    container_name: jellyfin
+    image: jellyfin/jellyfin
+    ports:
+      - "8096:8096/tcp"
+      - "7359:7359/udp"
+    volumes:
+      - "{{ playbook_dir }}/jellyfin/config:/config"
+      - "/mnt/homelab-data/jellyfin/cache:/cache"
+      - "/mnt/homelab-data/jellyfin/metadata:/metadata"
+      - "/mnt/homelab-data/movies:/media/movies"
+      - "/mnt/homelab-data/shows:/media/shows"
+
+  - name: homeassistant
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    network: host
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - "{{ playbook_dir }}/homeassistant/config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+
+
