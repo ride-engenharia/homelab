@@ -1,14 +1,14 @@
 
 services:
-  registry:
-    container_name: registry
-    image: distribution/distribution:edge
-    restart: unless-stopped
-    ports:
-      - 5000:5000
-    volumes:
-      - /mnt/homelab-data/registry/data:/var/lib/registry:Z
-      - ./registry/config.yml:/etc/distribution/config.yml:Z
+  # registry:
+  #   container_name: registry
+  #   image: distribution/distribution:edge
+  #   restart: unless-stopped
+  #   ports:
+  #     - 5000:5000
+  #   volumes:
+  #     - /mnt/homelab-data/registry/data:/var/lib/registry:Z
+  #     - ./registry/config.yml:/etc/distribution/config.yml:Z
 
   # jellyfin:
   #   container_name: jellyfin
@@ -52,23 +52,23 @@ services:
   #     - NET_ADMIN
   #     - NET_RAW
 
-  traefik:
-    container_name: traefik
-    image: traefik:v3.6
-    restart: unless-stopped
-    privileged: true
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
-      - "./traefik/traefik.yml:/etc/traefik/traefik.yml"
-      - "./traefik/letsencrypt:/letsencrypt:z"
-    cap_add:
-      - NET_BIND_SERVICE
-    networks:
-      - web
+  # traefik:
+  #   container_name: traefik
+  #   image: traefik:v3.6
+  #   restart: unless-stopped
+  #   privileged: true
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #     - "8080:8080"
+  #   volumes:
+  #     - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+  #     - "./traefik/traefik.yml:/etc/traefik/traefik.yml"
+  #     - "./traefik/letsencrypt:/letsencrypt:z"
+  #   cap_add:
+  #     - NET_BIND_SERVICE
+  #   networks:
+  #     - web
 
   tosh_io:
     container_name: tosh_io
@@ -161,16 +161,16 @@ services:
       - DOZZLE_ENABLE_ACTIONS=true
       - DOZZLE_ENABLE_SHELL=true
 
-  ollama:
-    container_name: ollama
-    image: ollama/ollama
-    restart: unless-stopped
-    ports:
-      - 11434:11434
-    volumes:
-      - /mnt/homelab-data/ollama:/root/.ollama:z
-    networks:
-      - web
+  # ollama:
+  #   container_name: ollama
+  #   image: ollama/ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - 11434:11434
+  #   volumes:
+  #     - /mnt/homelab-data/ollama:/root/.ollama:z
+  #   networks:
+  #     - web
 
 networks:
   web:

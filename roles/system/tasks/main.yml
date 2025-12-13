@@ -5,6 +5,8 @@
     sysctl_set: yes
     state: present
     reload: yes
+  become: yes
+
 
 - name: Enable linger for the podman user
   ansible.builtin.command: "loginctl enable-linger {{ local_user }}"

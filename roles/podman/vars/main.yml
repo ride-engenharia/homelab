@@ -31,4 +31,28 @@ podman_quadlets:
       - "{{ playbook_dir }}/homeassistant/config:/config"
       - "/etc/localtime:/etc/localtime:ro"
 
+  - name: registry
+    container_name: registry
+    image: distribution/distribution:edge
+    ports:
+      - "5000:5000"
+    volumes:
+      - "/mnt/homelab-data/registry/data:/var/lib/registry:Z"
+      - "{{ playbook_dir }}/registry/config.yml:/etc/distribution/config.yml:Z"
+
+  - name: traefik
+    container_name: traefik
+    image: traefik:v3.1.6
+    network: web
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+      - "{{ playbook_dir }}/traefik/traefik.yml:/etc/traefik/traefik.yml:Z"
+      - "{{ playbook_dir }}/traefik/letsencrypt:/letsencrypt:z"
+    cap_add:
+      - NET_BIND_SERVICE
+
 
