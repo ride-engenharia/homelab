@@ -70,23 +70,23 @@ services:
   #   networks:
   #     - web
 
-  tosh_io:
-    container_name: tosh_io
-    image: homelab:5000/tosh.io:latest
-    restart: unless-stopped
-    expose:
-      - "9292"
-    volumes:
-      - ./db/tosh.io:/usr/src/app/db:z
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.tosh_io.rule=Host(`tosh.io`)"
-      - "traefik.http.routers.tosh_io.entrypoints=websecure"
-      - "traefik.http.routers.tosh_io.tls.certresolver=letsencrypt_resolver"
-      - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
-      - "dev.dozzle.group=webapps"
-    networks:
-      - web
+  # tosh_io:
+  #   container_name: tosh_io
+  #   image: homelab:5000/tosh.io:latest
+  #   restart: unless-stopped
+  #   expose:
+  #     - "9292"
+  #   volumes:
+  #     - ./db/tosh.io:/usr/src/app/db:z
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.tosh_io.rule=Host(`tosh.io`)"
+  #     - "traefik.http.routers.tosh_io.entrypoints=websecure"
+  #     - "traefik.http.routers.tosh_io.tls.certresolver=letsencrypt_resolver"
+  #     - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
+  #     - "dev.dozzle.group=webapps"
+  #   networks:
+  #     - web
 
   price_history:
     container_name: price_history
@@ -148,18 +148,18 @@ services:
     env_file:
       - ../bingo/.env
 
-  dozzle:
-    container_name: dozzle
-    image: amir20/dozzle:latest
-    restart: unless-stopped
-    privileged: true
-    volumes:
-      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
-    ports:
-      - 8081:8080
-    environment:
-      - DOZZLE_ENABLE_ACTIONS=true
-      - DOZZLE_ENABLE_SHELL=true
+  # dozzle:
+  #   container_name: dozzle
+  #   image: amir20/dozzle:latest
+  #   restart: unless-stopped
+  #   privileged: true
+  #   volumes:
+  #     - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+  #   ports:
+  #     - 8081:8080
+  #   environment:
+  #     - DOZZLE_ENABLE_ACTIONS=true
+  #     - DOZZLE_ENABLE_SHELL=true
 
   # ollama:
   #   container_name: ollama

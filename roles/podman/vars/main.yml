@@ -42,7 +42,8 @@ podman_quadlets:
 
   - name: traefik
     container_name: traefik
-    image: traefik:v3.1.6
+    image: traefik:v3.6.4
+    privileged: true
     network: web
     ports:
       - "80:80"
@@ -54,5 +55,33 @@ podman_quadlets:
       - "{{ playbook_dir }}/traefik/letsencrypt:/letsencrypt:z"
     cap_add:
       - NET_BIND_SERVICE
+
+  - name: dozzle
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    privileged: true
+    volumes:
+      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+    ports:
+      - 8081:8080
+    environment:
+      - DOZZLE_ENABLE_ACTIONS=true
+      - DOZZLE_ENABLE_SHELL=true
+
+  - name: tosh_io
+    container_name: tosh_io
+    image: localhost:5000/tosh.io:latest
+    network: web
+    expose:
+      - "9292"
+    volumes:
+      - "{{ playbook_dir }}/db/tosh.io:/usr/src/app/db:z"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tosh_io.rule=Host(`tosh.io`)"
+      - "traefik.http.routers.tosh_io.entrypoints=websecure"
+      - "traefik.http.routers.tosh_io.tls.certresolver=letsencrypt_resolver"
+      - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
+      - "dev.dozzle.group=webapps"
 
 

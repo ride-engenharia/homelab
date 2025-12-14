@@ -35,6 +35,11 @@
   register: podman_sock_stat
   check_mode: no
 
+- name: Fix permissions on podman.sock
+  ansible.builtin.command:
+    cmd: "podman unshare chown {{ local_user_id }}:{{ local_user_id }} -R {{ podman_sock }}"
+  when: podman_sock_stat.stat.exists
+  changed_when: false
 
 - name: Ensure storage.conf is in place
   ansible.builtin.copy:
