@@ -26,6 +26,12 @@ Volume={{ volume }}
 Environment={{ env }}
 {% endfor %}
 {% endif %}
+{% if item.environment_files is defined %}
+{% for env_file in item.environment_files %}
+EnvironmentFile={{ env_file }}
+{% endfor %}
+{% endif %}
+
 {% if item.labels is defined %}
 {% for label in item.labels %}
 Label={{ label }}

@@ -70,7 +70,7 @@ podman_quadlets:
 
   - name: tosh_io
     container_name: tosh_io
-    image: localhost:5000/tosh.io:latest
+    image: homelab:5000/tosh.io:latest
     network: web
     expose:
       - "9292"
@@ -82,6 +82,60 @@ podman_quadlets:
       - "traefik.http.routers.tosh_io.entrypoints=websecure"
       - "traefik.http.routers.tosh_io.tls.certresolver=letsencrypt_resolver"
       - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
+      - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
       - "dev.dozzle.group=webapps"
 
+  - name: price_history
+    container_name: price_history
+    image: homelab:5000/price_history:latest
+    network: web
+    expose:
+      - "3000"
+    volumes:
+      - "/mnt/homelab-data/dbs/price_history:/rails/storage:z"
+    environment_files:
+      - "{{ playbook_dir }}/../price_history/.env"
+    userns: keep-id
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.price_history.rule=Host(`price-history.tosh.io`)"
+      - "traefik.http.routers.price_history.entrypoints=websecure"
+      - "traefik.http.routers.price_history.tls.certresolver=letsencrypt_resolver"
+      - "traefik.http.services.price_history.loadbalancer.server.port=3000"
+      - "dev.dozzle.group=webapps"
 
+  - name: ynab_view
+    container_name: ynab_view
+    image: homelab:5000/ynab-view:latest
+    network: web
+    expose:
+      - "4567"
+    environment_files:
+      - "{{ playbook_dir }}/../ynab-view/.env"
+    userns: keep-id
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ynab_view.rule=Host(`ynab-view.tosh.io`)"
+      - "traefik.http.routers.ynab_view.entrypoints=websecure"
+      - "traefik.http.routers.ynab_view.tls.certresolver=letsencrypt_resolver"
+      - "traefik.http.services.ynab_view.loadbalancer.server.port=4567"
+      - "dev.dozzle.group=webapps"
+
+  - name: bingo
+    container_name: bingo
+    image: homelab:5000/bingo:latest
+    network: web
+    expose:
+      - "3001"
+    volumes:
+      - /mnt/homelab-data/dbs/bingo:/rails/storage:z
+    environment_files:
+      - "{{ playbook_dir }}/../bingo/.env"
+    userns: keep-id
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bingo.rule=Host(`bingo.tosh.io`)"
+      - "traefik.http.routers.bingo.entrypoints=websecure"
+      - "traefik.http.routers.bingo.tls.certresolver=letsencrypt_resolver"
+      - "traefik.http.services.bingo.loadbalancer.server.port=3001"
+      - "dev.dozzle.group=webapps"

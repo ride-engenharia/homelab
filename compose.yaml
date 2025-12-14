@@ -88,65 +88,65 @@ services:
   #   networks:
   #     - web
 
-  price_history:
-    container_name: price_history
-    image: homelab:5000/price_history:latest
-    restart: unless-stopped
-    expose:
-      - "3000"
-    userns_mode: "keep-id"
-    volumes:
-      - /mnt/homelab-data/dbs/price_history:/rails/storage:z
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.price_history.rule=Host(`price-history.tosh.io`)"
-      - "traefik.http.routers.price_history.entrypoints=websecure"
-      - "traefik.http.routers.price_history.tls.certresolver=letsencrypt_resolver"
-      - "traefik.http.services.price_history.loadbalancer.server.port=3000"
-      - "dev.dozzle.group=webapps"
-    networks:
-      - web
-    env_file:
-      - ../price_history/.env
+  # price_history:
+  #   container_name: price_history
+  #   image: homelab:5000/price_history:latest
+  #   restart: unless-stopped
+  #   expose:
+  #     - "3000"
+  #   userns_mode: "keep-id"
+  #   volumes:
+  #     - /mnt/homelab-data/dbs/price_history:/rails/storage:z
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.price_history.rule=Host(`price-history.tosh.io`)"
+  #     - "traefik.http.routers.price_history.entrypoints=websecure"
+  #     - "traefik.http.routers.price_history.tls.certresolver=letsencrypt_resolver"
+  #     - "traefik.http.services.price_history.loadbalancer.server.port=3000"
+  #     - "dev.dozzle.group=webapps"
+  #   networks:
+  #     - web
+  #   env_file:
+  #     - ../price_history/.env
 
-  ynab_view:
-    container_name: ynab_view
-    image: homelab:5000/ynab-view:latest
-    restart: unless-stopped
-    expose:
-      - "4567"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ynab_view.rule=Host(`ynab-view.tosh.io`)"
-      - "traefik.http.routers.ynab_view.entrypoints=websecure"
-      - "traefik.http.routers.ynab_view.tls.certresolver=letsencrypt_resolver"
-      - "traefik.http.services.ynab_view.loadbalancer.server.port=4567"
-      - "dev.dozzle.group=webapps"
-    networks:
-      - web
-    env_file:
-      - ../ynab-view/.env
+  # ynab_view:
+  #   container_name: ynab_view
+  #   image: homelab:5000/ynab-view:latest
+  #   restart: unless-stopped
+  #   expose:
+  #     - "4567"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.ynab_view.rule=Host(`ynab-view.tosh.io`)"
+  #     - "traefik.http.routers.ynab_view.entrypoints=websecure"
+  #     - "traefik.http.routers.ynab_view.tls.certresolver=letsencrypt_resolver"
+  #     - "traefik.http.services.ynab_view.loadbalancer.server.port=4567"
+  #     - "dev.dozzle.group=webapps"
+  #   networks:
+  #     - web
+  #   env_file:
+  #     - ../ynab-view/.env
 
-  bingo:
-    container_name: bingo
-    image: homelab:5000/bingo:latest
-    restart: unless-stopped
-    expose:
-      - "3001"
-    userns_mode: "keep-id"
-    volumes:
-      - /mnt/homelab-data/dbs/bingo:/rails/storage:z
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bingo.rule=Host(`bingo.tosh.io`)"
-      - "traefik.http.routers.bingo.entrypoints=websecure"
-      - "traefik.http.routers.bingo.tls.certresolver=letsencrypt_resolver"
-      - "traefik.http.services.bingo.loadbalancer.server.port=3001"
-      - "dev.dozzle.group=webapps"
-    networks:
-      - web
-    env_file:
-      - ../bingo/.env
+  # bingo:
+  #   container_name: bingo
+  #   image: homelab:5000/bingo:latest
+  #   restart: unless-stopped
+  #   expose:
+  #     - "3001"
+  #   userns_mode: "keep-id"
+  #   volumes:
+  #     - /mnt/homelab-data/dbs/bingo:/rails/storage:z
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.bingo.rule=Host(`bingo.tosh.io`)"
+  #     - "traefik.http.routers.bingo.entrypoints=websecure"
+  #     - "traefik.http.routers.bingo.tls.certresolver=letsencrypt_resolver"
+  #     - "traefik.http.services.bingo.loadbalancer.server.port=3001"
+  #     - "dev.dozzle.group=webapps"
+  #   networks:
+  #     - web
+  #   env_file:
+  #     - ../bingo/.env
 
   # dozzle:
   #   container_name: dozzle
@@ -172,6 +172,6 @@ services:
   #   networks:
   #     - web
 
-networks:
-  web:
-    external: true
+# networks:
+#   web:
+#     external: true
