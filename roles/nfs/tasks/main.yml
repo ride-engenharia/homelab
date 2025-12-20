@@ -1,0 +1,36 @@
+---
+- name: Install NFS server
+  become: true
+  dnf:
+    name: nfs-utils
+    state: present
+
+- name: Create NFS share directory
+  file:
+    path: "{{ nfs_share_path }}"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
+
+- name: Configure NFS exports
+  become: true
+  lineinfile:
+    path: /etc/exports
+    line: "{{ nfs_share_path }} {{ nfs_network }}(rw,sync,no_subtree_check)"
+    insertafter: EOF
+
+- name: Enable and start NFS server
+  service:
+    name: nfs-server
+    state: started
+    enabled: true
+
+- name: Ensure NFS is allowed through the firewall
+  become: true
+  firewalld:
+    service: "nfs"
+    permanent: yes
+    state: enabled
+    immediate: yes
+
