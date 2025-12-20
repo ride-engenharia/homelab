@@ -7,23 +7,25 @@
 
 - name: Create NFS share directory
   file:
-    path: "{{ nfs_share_path }}"
+    path: "{{ item }}"
     state: directory
     owner: "{{ local_user }}"
     group: "{{ local_user }}"
     mode: '0755'
+  loop: "{{ nfs_share_paths }}" 
 
 - name: Configure NFS exports
   become: true
   lineinfile:
     path: /etc/exports
-    line: "{{ nfs_share_path }} {{ nfs_network }}(rw,sync,no_subtree_check)"
+    line: "{{ item }} {{ nfs_network }}(rw,sync,no_subtree_check)"
     insertafter: EOF
+  loop: "{{ nfs_share_paths }}"
 
-- name: Enable and start NFS server
+- name: Enable and restart NFS server
   service:
     name: nfs-server
-    state: started
+    state: restarted
     enabled: true
 
 - name: Ensure NFS is allowed through the firewall
