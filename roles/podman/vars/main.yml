@@ -63,10 +63,35 @@ podman_quadlets:
     volumes:
       - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
     ports:
-      - 8081:8080
+      - "8081:8080"
     environment:
       - DOZZLE_ENABLE_ACTIONS=true
       - DOZZLE_ENABLE_SHELL=true
+
+  - name: gitea
+    container_name: gitea
+    image: gitea/gitea:latest
+    privileged: true
+    volumes:
+      - "/mnt/homelab-data/gitea:/data:z"
+      - "/etc/localtime:/etc/localtime:ro"
+    ports:
+      - "3100:3000"
+      - "2222:22"
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    network: web
+
+  - name: gitea_runner
+    container_name: gitea_runner
+    image: gitea/act_runner:latest
+    privileged: true
+    network: web
+    volumes:
+      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+    environment_files:
+      - "{{ playbook_dir }}/gitea-runner.env"
 
   - name: tosh_io
     container_name: tosh_io

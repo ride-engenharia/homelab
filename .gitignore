@@ -21,6 +21,8 @@ logs/
 
 # --- Secrets ---
 .env
+*.env
+.env*
 secrets.yaml
 
 # --- Temporary or local files ---
