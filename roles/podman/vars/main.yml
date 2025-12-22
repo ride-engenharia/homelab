@@ -87,14 +87,14 @@ podman_quadlets:
 
   - name: price_history
     container_name: price_history
-    image: homelab:5000/price_history:latest
+    image: homelab.local:5000/price_history:latest
     network: web
     expose:
       - "3000"
     volumes:
       - "/mnt/homelab-data/dbs/price_history:/rails/storage:z"
     environment_files:
-      - "{{ playbook_dir }}/../price_history/.env"
+      - "{{ playbook_dir }}/environments/price_history.env"
     userns: keep-id
     labels:
       - "traefik.enable=true"
@@ -106,12 +106,12 @@ podman_quadlets:
 
   - name: ynab_view
     container_name: ynab_view
-    image: homelab:5000/ynab-view:latest
+    image: homelab.local:5000/ynab-view:latest
     network: web
     expose:
       - "4567"
     environment_files:
-      - "{{ playbook_dir }}/../ynab-view/.env"
+      - "{{ playbook_dir }}/environments/ynab_view.env"
     userns: keep-id
     labels:
       - "traefik.enable=true"
@@ -123,14 +123,14 @@ podman_quadlets:
 
   - name: bingo
     container_name: bingo
-    image: homelab:5000/bingo:latest
+    image: homelab.local:5000/bingo:latest
     network: web
     expose:
       - "3001"
     volumes:
       - /mnt/homelab-data/dbs/bingo:/rails/storage:z
     environment_files:
-      - "{{ playbook_dir }}/../bingo/.env"
+      - "{{ playbook_dir }}/environments/bingo.env"
     userns: keep-id
     labels:
       - "traefik.enable=true"
