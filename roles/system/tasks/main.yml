@@ -1,12 +1,11 @@
 - name: Set unprivileged port start
   ansible.builtin.sysctl:
     name: net.ipv4.ip_unprivileged_port_start
-    value: 80
+    value: "{{ unprivileged_port_start }}"
     sysctl_set: yes
     state: present
     reload: yes
   become: yes
-
 
 - name: Enable linger for the podman user
   ansible.builtin.command: "loginctl enable-linger {{ local_user }}"
@@ -14,3 +13,20 @@
   args:
     creates: "/var/lib/systemd/linger/{{ local_user }}"
 
+- name: Ensure systemd-resolved DNSStubListener is disabled
+  ansible.builtin.ini_file:
+    path: /etc/systemd/resolved.conf
+    section: Resolve
+    option: DNSStubListener
+    value: no
+    no_extra_spaces: yes
+  notify: Restart systemd-resolved
+  become: yes
+
+- name: Ensure /etc/resolv.conf is a symlink to NetworkManager
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    state: link
+    src: /run/NetworkManager/resolv.conf
+    force: no
+  become: yes
