@@ -59,6 +59,11 @@ PodmanArgs={{ arg }}
 {% if item.privileged is defined and item.privileged %}
 PodmanArgs=--privileged
 {% endif %}
+{% if item.dns is defined %}
+{% for dns in item.dns %}
+DNS={{ dns }}
+{% endfor %}
+{% endif %}
 
 {% if item.cap_add is defined %}
 {% for cap in item.cap_add %}

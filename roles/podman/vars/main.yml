@@ -6,17 +6,20 @@ podman_shared_volumes:
   - "{{ playbook_dir }}/db/price_history"
 
 podman_quadlets:
-  - name: pihole
-    container_name: pihole
-    image: pihole/pihole:latest
-    ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-      - "8082:80"
-    volumes:
-      - "/mnt/homelab-data/pihole:/etc/pihole:z"
-    environment_files:
-      - "{{ playbook_dir }}/environments/pihole.env"
+  # - name: pihole
+  #   container_name: pihole
+  #   image: pihole/pihole:latest
+  #   ports:
+  #     - "53:53/udp"
+  #     - "53:53/tcp"
+  #     - "8082:80"
+  #   volumes:
+  #     - "/mnt/homelab-data/pihole:/etc/pihole:z"
+  #   environment_files:
+  #     - "{{ playbook_dir }}/environments/pihole.env"
+  #   dns:
+  #     - "8.8.8.8"
+  #     - "8.8.4.4"
 
   - name: jellyfin
     container_name: jellyfin
@@ -94,7 +97,6 @@ podman_quadlets:
       - "traefik.http.routers.tosh_io.entrypoints=websecure"
       - "traefik.http.routers.tosh_io.tls.certresolver=letsencrypt_resolver"
       - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
-      - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
       - "dev.dozzle.group=webapps"
 
   - name: price_history
@@ -150,4 +152,23 @@ podman_quadlets:
       - "traefik.http.routers.bingo.entrypoints=websecure"
       - "traefik.http.routers.bingo.tls.certresolver=letsencrypt_resolver"
       - "traefik.http.services.bingo.loadbalancer.server.port=3001"
+      - "dev.dozzle.group=webapps"
+
+  - name: household-chores
+    container_name: household-chores
+    image: homelab.local:5000/household-chores:latest
+    network: web
+    expose:
+      - "4567"
+    volumes:
+      - /mnt/homelab-data/dbs/household-chores:/app/storage:z
+    environment_files:
+      - "{{ playbook_dir }}/environments/household-chores.env"
+    userns: keep-id
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.household-chores.rule=Host(`household-chores.tosh.io`)"
+      - "traefik.http.routers.household-chores.entrypoints=websecure"
+      - "traefik.http.routers.household-chores.tls.certresolver=letsencrypt_resolver"
+      - "traefik.http.services.household-chores.loadbalancer.server.port=4567"
       - "dev.dozzle.group=webapps"
