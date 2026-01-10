@@ -12,24 +12,3 @@
   become: yes
   args:
     creates: "/var/lib/systemd/linger/{{ local_user }}"
-
-# - name: Ensure systemd-resolved DNSStubListener is disabled
-#   ansible.builtin.ini_file:
-#     path: /etc/systemd/resolved.conf
-#     section: Resolve
-#     option: DNSStubListener
-#     value: no
-#     no_extra_spaces: yes
-#   notify: Restart systemd-resolved
-#   become: yes
-
-# - name: Configure resolv.conf for Pi-hole
-#   ansible.builtin.copy:
-#     dest: /etc/resolv.conf
-#     content: |
-#       nameserver 8.8.8.8
-#       options edns0 trust-ad
-#     owner: root
-#     group: root
-#     mode: '0644'
-#   become: yes

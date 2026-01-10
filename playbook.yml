@@ -1,7 +1,7 @@
-- hosts: local
+- hosts: ridelab
   vars_files:
     - ansible-vars/main.yml
   roles:
     - system
-    - podman
-    - nfs
+    - ip-sync
+    # - podman

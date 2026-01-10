@@ -1,0 +1,49 @@
+---
+- name: Ensure ip-sync directory exists
+  ansible.builtin.file:
+    path: "{{ ip_sync_last_ip_file | dirname }}"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Create initial last-ip file if it doesn't exist
+  ansible.builtin.copy:
+    content: "203.0.113.42\n"
+    dest: "{{ ip_sync_last_ip_file }}"
+    force: no
+    mode: '0644'
+  become: yes
+
+- name: Install sync-ip script
+  ansible.builtin.template:
+    src: sync-ip.sh.j2
+    dest: "{{ ip_sync_script_path }}"
+    mode: '0755'
+  become: yes
+  notify: restart ip-sync cron
+
+- name: Ensure jq is installed
+  ansible.builtin.command:
+    cmd: dnf install -y jq
+  become: yes
+  register: jq_install
+  changed_when: "'Nothing to do' not in jq_install.stdout"
+
+- name: Ensure curl is installed
+  ansible.builtin.command:
+    cmd: dnf install -y curl
+  become: yes
+  register: curl_install
+  changed_when: "'Nothing to do' not in curl_install.stdout"
+
+- name: Set up cron job for IP sync
+  ansible.builtin.cron:
+    name: "Sync IP to DigitalOcean DNS"
+    minute: "{{ ip_sync_cron_interval.split()[0] }}"
+    hour: "{{ ip_sync_cron_interval.split()[1] }}"
+    day: "{{ ip_sync_cron_interval.split()[2] }}"
+    month: "{{ ip_sync_cron_interval.split()[3] }}"
+    weekday: "{{ ip_sync_cron_interval.split()[4] }}"
+    job: "{{ ip_sync_script_path }} >> {{ ip_sync_log_file }} 2>&1"
+    user: root
+  become: yes

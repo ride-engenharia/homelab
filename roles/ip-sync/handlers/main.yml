@@ -1,0 +1,4 @@
+---
+- name: restart ip-sync cron
+  ansible.builtin.debug:
+    msg: "IP sync script updated - cron will use new version on next run"

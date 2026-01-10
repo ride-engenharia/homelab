@@ -1,5 +1,0 @@
-nfs_share_paths: 
-  - "/home/{{ local_user }}/projects/homelab"
-  - "/mnt/homelab-data/shows"
-  - "/mnt/homelab-data/movies"
-nfs_network: "192.168.2.0/24"
