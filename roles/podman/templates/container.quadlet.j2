@@ -11,6 +11,9 @@ ContainerName={{ item.container_name }}
 {% if item.exec is defined %}
 Exec={{ item.exec }}
 {% endif %}
+{% if item.command is defined %}
+Exec={{ item.command }}
+{% endif %}
 {% if item.ports is defined %}
 {% for port in item.ports %}
 PublishPort={{ port }}
@@ -71,6 +74,9 @@ AddCapability={{ cap }}
 {% endfor %}
 {% endif %}
 
+{% if item.add_host is defined %}
+AddHost={{ item.add_host }}
+{% endif %}
 
 [Service]
 Restart=always

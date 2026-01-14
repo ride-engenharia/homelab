@@ -4,4 +4,4 @@
   roles:
     - system
     - ip-sync
-    # - podman
+    - podman

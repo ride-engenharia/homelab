@@ -14,7 +14,7 @@
 
 - name: Ensure podman storage directory exists
   ansible.builtin.file:
-    path: "/mnt/homelab-data/podman/storage"
+    path: "/ridelab-data/podman/storage"
     state: directory
     mode: '0755'
 
@@ -40,6 +40,14 @@
     cmd: "podman unshare chown {{ local_user_id }}:{{ local_user_id }} -R {{ podman_sock }}"
   when: podman_sock_stat.stat.exists
   changed_when: false
+
+- name: Ensure containers config directory exists
+  ansible.builtin.file:
+    path: "/home/{{ local_user }}/.config/containers"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
 
 - name: Ensure storage.conf is in place
   ansible.builtin.copy:

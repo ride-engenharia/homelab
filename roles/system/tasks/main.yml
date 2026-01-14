@@ -12,3 +12,12 @@
   become: yes
   args:
     creates: "/var/lib/systemd/linger/{{ local_user }}"
+
+- name: Create /ridelab-data directory
+  ansible.builtin.file:
+    path: /ridelab-data
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
+  become: yes
