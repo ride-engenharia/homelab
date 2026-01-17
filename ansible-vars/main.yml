@@ -2,3 +2,5 @@
 local_user: "{{ ansible_env.USER }}"
 local_user_id: "{{ ansible_facts.user_uid }}"
 unprivileged_port_start: 80
+postgres_root_user: "{{ lookup('env', 'POSTGRES_USER') }}"
+postgres_root_password: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"

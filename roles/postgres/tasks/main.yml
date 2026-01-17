@@ -1,0 +1,36 @@
+- name: Wait for PostgreSQL to be ready
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: 5432
+    timeout: 30
+
+- name: Create application databases
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+  loop: "{{ databases }}"
+
+- name: Create database users
+  community.postgresql.postgresql_user:
+    name: "{{ item.user }}"
+    password: "{{ item.password }}"
+    role_attr_flags: "NOSUPERUSER"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+    login_db: "postgres"
+  loop: "{{ databases }}"
+
+- name: Grant privileges on databases
+  community.postgresql.postgresql_privs:
+    objs: "{{ item.name }}"
+    role: "{{ item.user }}"
+    privs: "ALL"
+    type: "database"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+    login_db: "postgres"
+  loop: "{{ databases }}"

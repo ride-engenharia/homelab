@@ -65,6 +65,26 @@
     group: "{{ local_user }}"
     mode: '0644'
 
+- name: Ensure containers env directory exists
+  ansible.builtin.file:
+    path: "/home/{{ local_user }}/.config/containers/env"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
+
+- name: Create environment files
+  ansible.builtin.template:
+    src: "env_file.j2"
+    dest: "/home/{{ local_user }}/.config/containers/env/{{ item.name }}.env"
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0600'
+  loop: "{{ podman_quadlets | default([]) }}"
+  when: item.env_data is defined
+  vars:
+    env_data: "{{ item.env_data }}"
+
 - name: Ensure Quadlet directory exists
   ansible.builtin.file:
     path: "/home/{{ local_user }}/.config/containers/systemd"

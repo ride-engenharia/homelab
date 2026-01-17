@@ -9,10 +9,10 @@ Image={{ item.image }}
 ContainerName={{ item.container_name }}
 {% endif %}
 {% if item.exec is defined %}
-Exec={{ item.exec }}
+Exec={{ item.exec | replace('%', '%%') }}
 {% endif %}
 {% if item.command is defined %}
-Exec={{ item.command }}
+Exec={{ item.command | replace('%', '%%') }}
 {% endif %}
 {% if item.ports is defined %}
 {% for port in item.ports %}
@@ -26,7 +26,7 @@ Volume={{ volume }}
 {% endif %}
 {% if item.environment is defined %}
 {% for env in item.environment %}
-Environment={{ env }}
+Environment={{ env | replace('%', '%%') }}
 {% endfor %}
 {% endif %}
 {% if item.environment_files is defined %}
@@ -56,7 +56,7 @@ SecurityLabel={{ opt }}
 {% endif %}
 {% if item.extra_args is defined %}
 {% for arg in item.extra_args %}
-PodmanArgs={{ arg }}
+PodmanArgs="{{ arg | replace('%', '%%') }}"
 {% endfor %}
 {% endif %}
 {% if item.privileged is defined and item.privileged %}

@@ -1,6 +1,7 @@
 podman_shared_volumes:
   - "/ridelab-data/registry"
   - "/ridelab-data/traefik/letsencrypt"
+  - "/ridelab-data/postgres"
 
 podman_quadlets:
 
@@ -9,6 +10,27 @@ podman_quadlets:
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run --token {{ lookup('env', 'CLOUDFLARE_TUNNEL_TOKEN') }}
     add_host: "host.containers.internal:host-gateway"
+
+  - name: postgres
+    container_name: postgres
+    image: postgres:18-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - "/ridelab-data/postgres:/var/lib/postgresql/data:z"
+    env_data:
+      POSTGRES_USER: "{{ postgres_root_user }}"
+      POSTGRES_PASSWORD: "{{ postgres_root_password }}"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    environment_files:
+      - "/home/{{ local_user }}/.config/containers/env/postgres.env"
+    command: "-c shared_buffers=512MB -c effective_cache_size=1536MB -c work_mem=16MB -c checkpoint_completion_target=0.9 -c log_min_duration_statement=200ms -c log_checkpoints=on -c idle_in_transaction_session_timeout=60000"
+    extra_args:
+      - "--memory=2g"
+      - "--cpus=2"
+      - "--shm-size=1g"
+      - "--health-cmd=pg_isready -U {{ postgres_root_user }}"
+      - "--health-interval=10s"
 
   #   ports:
   #     - "53:53/udp"

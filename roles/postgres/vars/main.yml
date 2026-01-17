@@ -1,0 +1,4 @@
+databases:
+  - name: "ride-admin-production"
+    user: "{{ lookup('env', 'RIDE_ADMIN_DB_USER') }}"
+    password: "{{ lookup('env', 'RIDE_ADMIN_DB_PASSWORD') }}"

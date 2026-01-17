@@ -1,7 +1,8 @@
-- hosts: ridelab
+- hosts: all_servers
   vars_files:
     - ansible-vars/main.yml
   roles:
     - system
     - ip-sync
     - podman
+    - postgres
