@@ -4,5 +4,6 @@
   roles:
     - system
     - ip-sync
+    - registry
     - podman
     - postgres

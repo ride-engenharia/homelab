@@ -1,0 +1,19 @@
+---
+- name: Ensure registry directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
+  loop:
+    - "/ridelab-data/registry"
+    - "/ridelab-data/registry/data"
+
+- name: Sync registry configuration from repo
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/registry/config.yml"
+    dest: "/ridelab-data/registry/config.yml"
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0644'
