@@ -40,7 +40,6 @@ podman_quadlets:
       - "/ridelab-data/registry/data:/var/lib/registry:Z"
       - "/ridelab-data/registry/config.yml:/etc/distribution/config.yml:Z"
 
-
   # - name: traefik
   #   container_name: traefik
   #   image: traefik:v3.6.4
@@ -68,6 +67,19 @@ podman_quadlets:
   #   environment:
   #     - DOZZLE_ENABLE_ACTIONS=true
   #     - DOZZLE_ENABLE_SHELL=true
+
+  # - name: ride-admin
+  #   container_name: ride-admin
+  #   image: localhost:5000/ride-admin:latest
+  #   ports:
+  #     - "3000:3000"
+  #   env_data:
+  #     RAILS_ENV: "production"
+  #     # Add other DB env vars as needed if they aren't in an env_file
+  #   environment_files:
+  #     - "/home/{{ local_user }}/.config/containers/env/ride-admin.env"
+  #   extra_args:
+  #     - "--pull=always" # This ensures it always checks the local registry for the latest image
 
   # - name: tosh_io
   #   container_name: tosh_io
