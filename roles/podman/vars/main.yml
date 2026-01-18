@@ -58,17 +58,22 @@ podman_quadlets:
       - "traefik.http.middlewares.traefik-auth.basicauth.users={{ lookup('env', 'TRAEFIK_BASIC_AUTH') }}"
       - "traefik.http.routers.dashboard.middlewares=traefik-auth"
 
-  # - name: dozzle
-  #   container_name: dozzle
-  #   image: amir20/dozzle:latest
-  #   privileged: true
-  #   volumes:
-  #     - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
-  #   ports:
-  #     - "8081:8080"
-  #   environment:
-  #     - DOZZLE_ENABLE_ACTIONS=true
-  #     - DOZZLE_ENABLE_SHELL=true
+  - name: dozzle
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    privileged: true
+    network: web
+    volumes:
+      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+    environment:
+      - DOZZLE_ENABLE_ACTIONS=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dozzle.rule=Host(`dozzle.ride.eng.br`)"
+      - "traefik.http.routers.dozzle.entrypoints=web"
+      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.dozzle-auth.basicauth.users={{ lookup('env', 'DOZZLE_BASIC_AUTH') }}"
+      - "traefik.http.routers.dozzle.middlewares=dozzle-auth"
 
   - name: ride-admin
     container_name: ride-admin

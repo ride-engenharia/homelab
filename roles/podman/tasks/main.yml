@@ -112,3 +112,11 @@
     enabled: true
     scope: user
   loop: "{{ podman_quadlets | default([]) }}"
+
+- name: Restart Quadlet services if config changed
+  ansible.builtin.systemd:
+    name: "{{ item.name }}"
+    state: restarted
+    scope: user
+  loop: "{{ podman_quadlets | default([]) }}"
+  when: quadlet_files_result.changed
