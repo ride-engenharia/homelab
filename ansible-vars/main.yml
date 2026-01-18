@@ -2,5 +2,5 @@
 local_user: "{{ ansible_env.USER }}"
 local_user_id: "{{ ansible_facts.user_uid }}"
 unprivileged_port_start: 80
-postgres_root_user: "{{ lookup('env', 'POSTGRES_USER') }}"
-postgres_root_password: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
+postgres_root_user: "postgres"
+postgres_root_password: "{{ lookup('community.general.bitwarden_secrets_manager', '8de34e1f-6788-4d97-970e-b3d60111549f').value }}"

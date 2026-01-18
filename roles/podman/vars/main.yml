@@ -4,7 +4,7 @@ podman_quadlets:
     container_name: cloudflared
     image: cloudflare/cloudflared:latest
     network: web
-    command: tunnel --no-autoupdate run --token {{ lookup('env', 'CLOUDFLARE_TUNNEL_TOKEN') }}
+    command: tunnel --no-autoupdate run --token {{ lookup('community.general.bitwarden_secrets_manager', 'e251d624-92fe-4c1c-a7e4-b3d601107a85').value }}
     add_host: "host.containers.internal:host-gateway"
 
   - name: postgres
@@ -55,7 +55,7 @@ podman_quadlets:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.ride.eng.br`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=web"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users={{ lookup('env', 'TRAEFIK_BASIC_AUTH') }}"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users={{ lookup('community.general.bitwarden_secrets_manager', '9a19daa2-825a-43d1-b1fb-b3d6011194fa').value }}"
       - "traefik.http.routers.dashboard.middlewares=traefik-auth"
 
   - name: dozzle
@@ -72,7 +72,7 @@ podman_quadlets:
       - "traefik.http.routers.dozzle.rule=Host(`dozzle.ride.eng.br`)"
       - "traefik.http.routers.dozzle.entrypoints=web"
       - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.dozzle-auth.basicauth.users={{ lookup('env', 'DOZZLE_BASIC_AUTH') }}"
+      - "traefik.http.middlewares.dozzle-auth.basicauth.users={{ lookup('community.general.bitwarden_secrets_manager', 'b3fdd919-e73f-497c-8a11-b3d60111ad0a').value }}"
       - "traefik.http.routers.dozzle.middlewares=dozzle-auth"
 
   - name: ride-admin

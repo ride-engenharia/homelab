@@ -1,4 +1,4 @@
 databases:
   - name: "ride-admin-production"
-    user: "{{ lookup('env', 'RIDE_ADMIN_DB_USER') }}"
-    password: "{{ lookup('env', 'RIDE_ADMIN_DB_PASSWORD') }}"
+    user: "ride-admin"
+    password: "{{ lookup('community.general.bitwarden_secrets_manager', '6893be08-c03f-4e95-87f8-b3d601116eab').value }}"

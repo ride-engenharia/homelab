@@ -13,6 +13,29 @@ ansible-galaxy collection install -r requirements.yml
 ### Python Dependencies
 The PostgreSQL roles automatically handle the installation of `python3-pip` and `python3-psycopg2` on the server using the `dnf` module.
 
+### Bitwarden Secrets Manager CLI
+This project uses the `community.general.bitwarden_secrets_manager` lookup plugin to securely retrieve secrets. This requires the **Bitwarden Secrets Manager CLI (`bws`)** to be installed on the system running Ansible.
+
+#### Installation Options:
+
+**Install Script (Recommended for Linux/macOS)**
+```bash
+curl -fsSL https://github.com/bitwarden/sdk/releases/latest/download/bws-x86_64-unknown-linux-gnu -o bws
+chmod +x bws
+sudo mv bws /usr/local/bin/
+```
+
+**Verify Installation:**
+```bash
+bws --version
+```
+
+**Authentication:**
+Set the `BWS_ACCESS_TOKEN` environment variable with your Bitwarden Secrets Manager access token:
+```bash
+export BWS_ACCESS_TOKEN="your_access_token_here"
+```
+
 ## Usage
 
 1. **Install requirements** (first time only):
