@@ -3,7 +3,6 @@
     - ansible-vars/main.yml
   roles:
     - system
-    - ip-sync
     - deploy-apps
     - registry
     - traefik

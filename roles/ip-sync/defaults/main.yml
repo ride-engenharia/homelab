@@ -1,7 +1,0 @@
----
-ip_sync_domain: "ride.eng.br"
-ip_sync_script_path: "/usr/local/bin/sync-ip.sh"
-ip_sync_last_ip_file: "/var/lib/ip-sync/last-ip"
-ip_sync_log_file: "/var/log/sync-ip.log"
-ip_sync_cron_interval: "*/10 * * * *"
-ip_sync_digital_ocean_token: "{{ lookup('env', 'DIGITAL_OCEAN_TOKEN') }}"
