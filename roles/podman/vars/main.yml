@@ -22,7 +22,6 @@ podman_quadlets:
     env_data:
       POSTGRES_USER: "{{ postgres_root_user }}"
       POSTGRES_PASSWORD: "{{ postgres_root_password }}"
-      POSTGRES_HOST_AUTH_METHOD: "trust"
     environment_files:
       - "/home/{{ local_user }}/.config/containers/env/postgres.env"
     command: "-c shared_buffers=512MB -c effective_cache_size=1536MB -c work_mem=16MB -c checkpoint_completion_target=0.9 -c log_min_duration_statement=200ms -c log_checkpoints=on -c idle_in_transaction_session_timeout=60000"
