@@ -20,7 +20,9 @@ This project uses the `community.general.bitwarden_secrets_manager` lookup plugi
 
 **Install Script (Recommended for Linux/macOS)**
 ```bash
-curl -fsSL https://github.com/bitwarden/sdk/releases/latest/download/bws-x86_64-unknown-linux-gnu -o bws
+cd /tmp
+curl -LO "https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip"
+unzip bws-*.zip
 chmod +x bws
 sudo mv bws /usr/local/bin/
 ```
