@@ -1,16 +1,16 @@
+- name: Ensure postgres base directory exists
+  ansible.builtin.file:
+    path: /ridelab-data/postgres
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0755'
+
 - name: Wait for PostgreSQL to be ready
   ansible.builtin.wait_for:
     host: "127.0.0.1"
     port: 5432
     timeout: 30
-
-- name: Create application databases
-  community.postgresql.postgresql_db:
-    name: "{{ item.name }}"
-    login_host: "127.0.0.1"
-    login_user: "{{ postgres_root_user }}"
-    login_password: "{{ postgres_root_password }}"
-  loop: "{{ databases }}"
 
 - name: Create database users
   community.postgresql.postgresql_user:
@@ -23,20 +23,18 @@
     login_db: "postgres"
   loop: "{{ databases }}"
 
-- name: Grant database-level privileges
-  community.postgresql.postgresql_privs:
-    objs: "{{ item.name }}"
-    role: "{{ item.user }}"
-    privs: "ALL"
-    type: "database"
+- name: Create application databases and set owner
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.user }}"
     login_host: "127.0.0.1"
     login_user: "{{ postgres_root_user }}"
     login_password: "{{ postgres_root_password }}"
-    login_db: "postgres"
   loop: "{{ databases }}"
 
 - name: Grant schema privileges
   community.postgresql.postgresql_privs:
+    login_db: "{{ item.name }}"
     objs: "public"
     role: "{{ item.user }}"
     privs: "ALL"
@@ -44,29 +42,54 @@
     login_host: "127.0.0.1"
     login_user: "{{ postgres_root_user }}"
     login_password: "{{ postgres_root_password }}"
-    login_db: "{{ item.name }}"
   loop: "{{ databases }}"
 
-- name: Grant table privileges
+- name: Grant privileges on existing tables
   community.postgresql.postgresql_privs:
-    objs: "ALL_IN_SCHEMA"
+    login_db: "{{ item.name }}"
+    objs: ALL_IN_SCHEMA
+    schema: public
     role: "{{ item.user }}"
-    privs: "ALL"
-    type: "table"
+    privs: ALL
+    type: table
     login_host: "127.0.0.1"
     login_user: "{{ postgres_root_user }}"
     login_password: "{{ postgres_root_password }}"
-    login_db: "{{ item.name }}"
   loop: "{{ databases }}"
 
-- name: Grant sequence privileges
+- name: Grant privileges on existing sequences
   community.postgresql.postgresql_privs:
-    objs: "ALL_IN_SCHEMA"
+    login_db: "{{ item.name }}"
+    objs: ALL_IN_SCHEMA
+    schema: public
     role: "{{ item.user }}"
-    privs: "ALL"
-    type: "sequence"
+    privs: ALL
+    type: sequence
     login_host: "127.0.0.1"
     login_user: "{{ postgres_root_user }}"
     login_password: "{{ postgres_root_password }}"
+  loop: "{{ databases }}"
+
+- name: Set default privileges for tables
+  community.postgresql.postgresql_privs:
     login_db: "{{ item.name }}"
+    objs: "tables"
+    privs: "ALL"
+    role: "{{ item.user }}"
+    type: "default_privs"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+  loop: "{{ databases }}"
+
+- name: Set default privileges for sequences
+  community.postgresql.postgresql_privs:
+    login_db: "{{ item.name }}"
+    objs: "sequences"
+    privs: "ALL"
+    role: "{{ item.user }}"
+    type: "default_privs"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
   loop: "{{ databases }}"

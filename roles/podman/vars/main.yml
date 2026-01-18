@@ -1,7 +1,3 @@
-podman_shared_volumes:
-  - "/ridelab-data/traefik/letsencrypt"
-  - "/ridelab-data/postgres"
-
 podman_quadlets:
 
   - name: cloudflared
@@ -52,7 +48,6 @@ podman_quadlets:
     volumes:
       - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
       - "/ridelab-data/traefik/traefik.yml:/etc/traefik/traefik.yml:Z"
-      - "/ridelab-data/traefik/letsencrypt:/letsencrypt:z"
     cap_add:
       - NET_BIND_SERVICE
     labels:
@@ -60,10 +55,7 @@ podman_quadlets:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.ride.eng.br`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=web"
-      # Define the Basic Auth Middleware
-      # Replace 'user:hash' with the output from the command in Step 1
       - "traefik.http.middlewares.traefik-auth.basicauth.users={{ lookup('env', 'TRAEFIK_BASIC_AUTH') }}"
-      # Attach the Middleware to the Dashboard Router
       - "traefik.http.routers.dashboard.middlewares=traefik-auth"
 
   # - name: dozzle

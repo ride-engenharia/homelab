@@ -6,22 +6,6 @@
     group: "{{ local_user }}"
     mode: '0755'
 
-- name: Ensure Let's Encrypt directory exists
-  ansible.builtin.file:
-    path: /ridelab-data/traefik/letsencrypt
-    state: directory
-    owner: "{{ local_user }}"
-    group: "{{ local_user }}"
-    mode: '0700'
-
-- name: Ensure acme.json exists
-  ansible.builtin.file:
-    path: /ridelab-data/traefik/letsencrypt/acme.json
-    state: touch
-    owner: "{{ local_user }}"
-    group: "{{ local_user }}"
-    mode: '0600'
-
 - name: Sync traefik configuration from repo
   ansible.builtin.copy:
     src: "traefik.yml"

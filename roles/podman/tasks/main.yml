@@ -21,13 +21,6 @@
     state: directory
     mode: '0755'
 
-- name: Ensure podman volumes/directories exist
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-  loop: "{{ podman_shared_volumes }}"
-
 - name: Set podman_sock path dynamically
   ansible.builtin.set_fact:
     podman_sock: "/run/user/{{ local_user_id }}/podman/podman.sock"
