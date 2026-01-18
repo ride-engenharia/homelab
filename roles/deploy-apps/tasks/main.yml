@@ -17,3 +17,10 @@
     owner: "{{ local_user }}"
     group: "{{ local_user }}"
     mode: '0755'
+
+- name: Deploy ride-admin environment file with Bitwarden secrets
+  ansible.builtin.template:
+    src: templates/ride-admin.env.j2
+    dest: "/home/{{ local_user }}/.config/containers/env/ride-admin.env.test"
+    mode: '0600'
+    no_log: true
