@@ -23,7 +23,7 @@
     login_db: "postgres"
   loop: "{{ databases }}"
 
-- name: Grant privileges on databases
+- name: Grant database-level privileges
   community.postgresql.postgresql_privs:
     objs: "{{ item.name }}"
     role: "{{ item.user }}"
@@ -33,4 +33,40 @@
     login_user: "{{ postgres_root_user }}"
     login_password: "{{ postgres_root_password }}"
     login_db: "postgres"
+  loop: "{{ databases }}"
+
+- name: Grant schema privileges
+  community.postgresql.postgresql_privs:
+    objs: "public"
+    role: "{{ item.user }}"
+    privs: "ALL"
+    type: "schema"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+    login_db: "{{ item.name }}"
+  loop: "{{ databases }}"
+
+- name: Grant table privileges
+  community.postgresql.postgresql_privs:
+    objs: "ALL_IN_SCHEMA"
+    role: "{{ item.user }}"
+    privs: "ALL"
+    type: "table"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+    login_db: "{{ item.name }}"
+  loop: "{{ databases }}"
+
+- name: Grant sequence privileges
+  community.postgresql.postgresql_privs:
+    objs: "ALL_IN_SCHEMA"
+    role: "{{ item.user }}"
+    privs: "ALL"
+    type: "sequence"
+    login_host: "127.0.0.1"
+    login_user: "{{ postgres_root_user }}"
+    login_password: "{{ postgres_root_password }}"
+    login_db: "{{ item.name }}"
   loop: "{{ databases }}"

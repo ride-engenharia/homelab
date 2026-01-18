@@ -12,7 +12,7 @@
 
 - name: Sync registry configuration from repo
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/registry/config.yml"
+    src: "config.yml"
     dest: "/ridelab-data/registry/config.yml"
     owner: "{{ local_user }}"
     group: "{{ local_user }}"

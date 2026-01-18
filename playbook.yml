@@ -6,5 +6,6 @@
     - ip-sync
     - deploy-apps
     - registry
+    - traefik
     - podman
     - postgres

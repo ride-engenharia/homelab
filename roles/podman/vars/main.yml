@@ -7,12 +7,14 @@ podman_quadlets:
   - name: cloudflared
     container_name: cloudflared
     image: cloudflare/cloudflared:latest
+    network: web
     command: tunnel --no-autoupdate run --token {{ lookup('env', 'CLOUDFLARE_TUNNEL_TOKEN') }}
     add_host: "host.containers.internal:host-gateway"
 
   - name: postgres
     container_name: postgres
     image: postgres:18-alpine
+    network: db_internal
     ports:
       - "5432:5432"
     volumes:
@@ -40,21 +42,30 @@ podman_quadlets:
       - "/ridelab-data/registry/data:/var/lib/registry:Z"
       - "/ridelab-data/registry/config.yml:/etc/distribution/config.yml:Z"
 
-  # - name: traefik
-  #   container_name: traefik
-  #   image: traefik:v3.6.4
-  #   privileged: true
-  #   network: web
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #     - "8080:8080"
-  #   volumes:
-  #     - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
-  #     - "{{ playbook_dir }}/traefik/traefik.yml:/etc/traefik/traefik.yml:Z"
-  #     - "{{ playbook_dir }}/traefik/letsencrypt:/letsencrypt:z"
-  #   cap_add:
-  #     - NET_BIND_SERVICE
+  - name: traefik
+    container_name: traefik
+    image: traefik:v3.6.4
+    privileged: true
+    network: web
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/run/user/1000/podman/podman.sock:/var/run/docker.sock:z"
+      - "/ridelab-data/traefik/traefik.yml:/etc/traefik/traefik.yml:Z"
+      - "/ridelab-data/traefik/letsencrypt:/letsencrypt:z"
+    cap_add:
+      - NET_BIND_SERVICE
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.ride.eng.br`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+      # Define the Basic Auth Middleware
+      # Replace 'user:hash' with the output from the command in Step 1
+      - "traefik.http.middlewares.traefik-auth.basicauth.users={{ lookup('env', 'TRAEFIK_BASIC_AUTH') }}"
+      # Attach the Middleware to the Dashboard Router
+      - "traefik.http.routers.dashboard.middlewares=traefik-auth"
 
   # - name: dozzle
   #   container_name: dozzle
@@ -68,105 +79,18 @@ podman_quadlets:
   #     - DOZZLE_ENABLE_ACTIONS=true
   #     - DOZZLE_ENABLE_SHELL=true
 
-  # - name: ride-admin
-  #   container_name: ride-admin
-  #   image: localhost:5000/ride-admin:latest
-  #   ports:
-  #     - "3000:3000"
-  #   env_data:
-  #     RAILS_ENV: "production"
-  #     # Add other DB env vars as needed if they aren't in an env_file
-  #   environment_files:
-  #     - "/home/{{ local_user }}/.config/containers/env/ride-admin.env"
-  #   extra_args:
-  #     - "--pull=always" # This ensures it always checks the local registry for the latest image
-
-  # - name: tosh_io
-  #   container_name: tosh_io
-  #   image: homelab.local:5000/tosh.io:latest
-  #   network: web
-  #   expose:
-  #     - "9292"
-  #   volumes:
-  #     - "{{ playbook_dir }}/db/tosh.io:/usr/src/app/db:z"
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.tosh_io.rule=Host(`tosh.io`)"
-  #     - "traefik.http.routers.tosh_io.entrypoints=websecure"
-  #     - "traefik.http.routers.tosh_io.tls.certresolver=letsencrypt_resolver"
-  #     - "traefik.http.services.tosh_io.loadbalancer.server.port=9292"
-  #     - "dev.dozzle.group=webapps"
-
-  # - name: price_history
-  #   container_name: price_history
-  #   image: homelab.local:5000/price_history:latest
-  #   network: web
-  #   expose:
-  #     - "3000"
-  #   volumes:
-  #     - "/mnt/homelab-data/dbs/price_history:/rails/storage:z"
-  #   environment_files:
-  #     - "{{ playbook_dir }}/environments/price_history.env"
-  #   userns: keep-id
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.price_history.rule=Host(`price-history.tosh.io`)"
-  #     - "traefik.http.routers.price_history.entrypoints=websecure"
-  #     - "traefik.http.routers.price_history.tls.certresolver=letsencrypt_resolver"
-  #     - "traefik.http.services.price_history.loadbalancer.server.port=3000"
-  #     - "dev.dozzle.group=webapps"
-
-  # - name: ynab_view
-  #   container_name: ynab_view
-  #   image: homelab.local:5000/ynab-view:latest
-  #   network: web
-  #   expose:
-  #     - "4567"
-  #   environment_files:
-  #     - "{{ playbook_dir }}/environments/ynab_view.env"
-  #   userns: keep-id
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.ynab_view.rule=Host(`ynab-view.tosh.io`)"
-  #     - "traefik.http.routers.ynab_view.entrypoints=websecure"
-  #     - "traefik.http.routers.ynab_view.tls.certresolver=letsencrypt_resolver"
-  #     - "traefik.http.services.ynab_view.loadbalancer.server.port=4567"
-  #     - "dev.dozzle.group=webapps"
-
-  # - name: bingo
-  #   container_name: bingo
-  #   image: homelab.local:5000/bingo:latest
-  #   network: web
-  #   expose:
-  #     - "3001"
-  #   volumes:
-  #     - /mnt/homelab-data/dbs/bingo:/rails/storage:z
-  #   environment_files:
-  #     - "{{ playbook_dir }}/environments/bingo.env"
-  #   userns: keep-id
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.bingo.rule=Host(`bingo.tosh.io`)"
-  #     - "traefik.http.routers.bingo.entrypoints=websecure"
-  #     - "traefik.http.routers.bingo.tls.certresolver=letsencrypt_resolver"
-  #     - "traefik.http.services.bingo.loadbalancer.server.port=3001"
-  #     - "dev.dozzle.group=webapps"
-
-  # - name: household-chores
-  #   container_name: household-chores
-  #   image: homelab.local:5000/household-chores:latest
-  #   network: web
-  #   expose:
-  #     - "4567"
-  #   volumes:
-  #     - /mnt/homelab-data/dbs/household-chores:/app/storage:z
-  #   environment_files:
-  #     - "{{ playbook_dir }}/environments/household-chores.env"
-  #   userns: keep-id
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.household-chores.rule=Host(`household-chores.tosh.io`)"
-  #     - "traefik.http.routers.household-chores.entrypoints=websecure"
-  #     - "traefik.http.routers.household-chores.tls.certresolver=letsencrypt_resolver"
-  #     - "traefik.http.services.household-chores.loadbalancer.server.port=4567"
-  #     - "dev.dozzle.group=webapps"
+  - name: ride-admin
+    container_name: ride-admin
+    image: localhost:5000/ride-admin:latest
+    network:
+      - web
+      - db_internal
+    ports:
+      - "3000:3000"
+    environment_files:
+      - "/home/{{ local_user }}/.config/containers/env/ride-admin.env"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ride-admin.rule=Host(`ride-admin.ride.eng.br`)"
+      - "traefik.http.routers.ride-admin.entrypoints=web"
+      - "traefik.http.services.ride-admin.loadbalancer.server.port=3000"

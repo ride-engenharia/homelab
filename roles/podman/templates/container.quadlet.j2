@@ -41,7 +41,13 @@ Label={{ label }}
 {% endfor %}
 {% endif %}
 {% if item.network is defined %}
+{% if item.network is string %}
 Network={{ item.network }}
+{% else %}
+{% for net in item.network %}
+Network={{ net }}
+{% endfor %}
+{% endif %}
 {% endif %}
 {% if item.userns is defined %}
 UserNS={{ item.userns }}

@@ -7,10 +7,13 @@
     state: started
   register: podman_socket_result
 
-- name: Ensure podman network 'web' exists
+- name: Ensure podman networks exist
   containers.podman.podman_network:
-    name: web
+    name: "{{ item }}"
     state: present
+  loop:
+    - web
+    - db_internal
 
 - name: Ensure podman storage directory exists
   ansible.builtin.file:
