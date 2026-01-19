@@ -23,4 +23,4 @@
     src: templates/ride-admin.env.j2
     dest: "/home/{{ local_user }}/.config/containers/env/ride-admin.env"
     mode: '0600'
-    no_log: true
+  no_log: true
