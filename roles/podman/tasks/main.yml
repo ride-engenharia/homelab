@@ -80,6 +80,7 @@
   when: item.env_data is defined
   vars:
     env_data: "{{ item.env_data }}"
+  no_log: true
 
 - name: Ensure Quadlet directory exists
   ansible.builtin.file:
@@ -98,6 +99,7 @@
     mode: '0644'
   loop: "{{ podman_quadlets | default([]) }}"
   register: quadlet_files_result
+  no_log: true
 
 - name: Reload systemd user daemon
   ansible.builtin.systemd:
