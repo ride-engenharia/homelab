@@ -1,0 +1,39 @@
+---
+- name: Create directory for keys
+  ansible.builtin.file:
+    path: "{{ ca_directory }}"
+    state: directory
+    mode: '0700'
+
+- name: 1. Generate Private Key (The "Secret")
+  community.crypto.openssl_privatekey:
+    path: "{{ ca_directory }}/{{ ca_key_name }}"
+    type: RSA
+    size: 4096
+    mode: '0600'
+
+- name: 2. Generate Certificate Signing Request (CSR)
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ca_directory }}/{{ ca_key_name }}"
+    common_name: "Ridelab Root CA"
+    organization_name: "Ridelab"
+    # Critical for AWS: Must define this as a CA
+    basic_constraints:
+      - "CA:TRUE"
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+      - cRLSign
+      - digitalSignature
+    key_usage_critical: true
+  register: ca_csr
+
+- name: 3. Generate Self-Signed Root Certificate (The "Trust Anchor")
+  community.crypto.x509_certificate:
+    path: "{{ ca_directory }}/{{ ca_cert_name }}"
+    csr_content: "{{ ca_csr.csr }}"
+    privatekey_path: "{{ ca_directory }}/{{ ca_key_name }}"
+    provider: selfsigned
+    # Validity: roughly 100 years
+    selfsigned_not_after: "+36500d"
+    selfsigned_digest: sha256
