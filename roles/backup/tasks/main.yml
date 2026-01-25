@@ -38,6 +38,34 @@
     selfsigned_not_after: "+36500d"
     selfsigned_digest: sha256
 
+- name: 3.1. Generate Backup Client Private Key
+  community.crypto.openssl_privatekey:
+    path: "{{ ca_directory }}/backup_client.key"
+    type: RSA
+    size: 4096
+    mode: '0600'
+
+- name: 3.2. Generate Backup Client CSR
+  community.crypto.openssl_csr:
+    path: "{{ ca_directory }}/backup_client.csr"
+    privatekey_path: "{{ ca_directory }}/backup_client.key"
+    common_name: "Ridelab Backup Client"
+    organization_name: "Ridelab"
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+
+- name: 3.3. Generate Backup Client Certificate (Signed by Root CA)
+  community.crypto.x509_certificate:
+    path: "{{ ca_directory }}/backup_client.crt"
+    csr_path: "{{ ca_directory }}/backup_client.csr"
+    ownca_path: "{{ ca_directory }}/{{ ca_cert_name }}"
+    ownca_privatekey_path: "{{ ca_directory }}/{{ ca_key_name }}"
+    provider: ownca
+    # Validity: 1 year
+    ownca_not_after: "+365d"
+
 - name: 3.5. Read the remote certificate into memory
   ansible.builtin.slurp:
     src: "{{ ca_directory }}/{{ ca_cert_name }}"
@@ -78,3 +106,178 @@
 - name: Set ARN Fact
   set_fact:
     trust_anchor_arn: "{{ final_arn.stdout }}"
+
+- name: 5.5. Update AWS Roles Anywhere Trust Anchor (Ensure Cert Matches)
+  ansible.builtin.shell: |
+    aws rolesanywhere update-trust-anchor \
+      --trust-anchor-id "{{ trust_anchor_arn | regex_replace('^.*/', '') }}" \
+      --source "sourceData={x509CertificateData='{{ remote_cert.content | b64decode }}'},sourceType=CERTIFICATE_BUNDLE" \
+      --region {{ aws_region | default('us-east-1') }}
+  delegate_to: localhost
+  when: trust_anchor_arn != "None" and trust_anchor_arn != ""
+  changed_when: true
+
+- name: 6.1. Check if S3 Bucket Exists
+  ansible.builtin.shell: |
+    aws s3api head-bucket --bucket "{{ s3_backup_bucket }}" 2>&1 || true
+  delegate_to: localhost
+  register: s3_bucket_check
+  changed_when: false
+
+- name: 6.2. Create S3 Bucket (us-east-1)
+  ansible.builtin.shell: |
+    aws s3api create-bucket --bucket "{{ s3_backup_bucket }}" --region us-east-1
+  delegate_to: localhost
+  when:
+    - "'Not Found' in s3_bucket_check.stdout or '404' in s3_bucket_check.stdout"
+    - (aws_region | default('us-east-1')) == 'us-east-1'
+
+- name: 6.2. Create S3 Bucket (Other Regions)
+  ansible.builtin.shell: |
+    aws s3api create-bucket \
+      --bucket "{{ s3_backup_bucket }}" \
+      --region {{ aws_region }} \
+      --create-bucket-configuration LocationConstraint={{ aws_region }}
+  delegate_to: localhost
+  when:
+    - "'Not Found' in s3_bucket_check.stdout or '404' in s3_bucket_check.stdout"
+    - (aws_region | default('us-east-1')) != 'us-east-1'
+
+- name: 6.3. Configure S3 Lifecycle Policy (15 Days Retention)
+  ansible.builtin.shell: |
+    aws s3api put-bucket-lifecycle-configuration \
+      --bucket "{{ s3_backup_bucket }}" \
+      --lifecycle-configuration '{
+        "Rules": [
+          {
+            "ID": "ExpireOldBackups",
+            "Status": "Enabled",
+            "Prefix": "",
+            "Expiration": {
+              "Days": 15
+            }
+          }
+        ]
+      }'
+  delegate_to: localhost
+
+- name: 7. Create IAM Trust Policy Document
+  ansible.builtin.template:
+    src: "trust_policy.json.j2"
+    dest: "/tmp/trust_policy.json"
+    mode: '0600'
+  delegate_to: localhost
+
+- name: 8. Create IAM Role for Backups
+  ansible.builtin.shell: |
+    aws iam create-role \
+      --role-name "{{ backup_role_name }}" \
+      --assume-role-policy-document file:///tmp/trust_policy.json
+  delegate_to: localhost
+  register: create_role_out
+  failed_when:
+    - create_role_out.rc != 0
+    - "'EntityAlreadyExists' not in create_role_out.stderr"
+  changed_when: "'EntityAlreadyExists' not in create_role_out.stderr"
+
+- name: 8.5. Ensure Trust Policy is Up-to-Date (Idempotency)
+  ansible.builtin.shell: |
+    aws iam update-assume-role-policy \
+      --role-name "{{ backup_role_name }}" \
+      --policy-document file:///tmp/trust_policy.json
+  delegate_to: localhost
+  changed_when: false
+
+- name: 9. Create S3 Permissions Policy Document
+  ansible.builtin.template:
+    src: "s3_backup_policy.json.j2"
+    dest: "/tmp/s3_backup_policy.json"
+    mode: '0600'
+  delegate_to: localhost
+
+- name: 9.5. Attach S3 Permissions Policy to Role
+  ansible.builtin.shell: |
+    aws iam put-role-policy \
+      --role-name "{{ backup_role_name }}" \
+      --policy-name "S3BackupAccess" \
+      --policy-document file:///tmp/s3_backup_policy.json
+  delegate_to: localhost
+  changed_when: false
+
+- name: 10. Check if Roles Anywhere Profile Exists
+  ansible.builtin.shell: |
+    aws rolesanywhere list-profiles \
+      --region {{ aws_region | default('us-east-1') }} \
+      --query "profiles[?name=='{{ backup_profile_name }}'].profileArn | [0]" \
+      --output text
+  delegate_to: localhost
+  register: fetched_profile_arn
+  changed_when: false
+
+- name: 11. Create AWS Roles Anywhere Profile
+  ansible.builtin.shell: |
+    ROLE_ARN=$(aws iam get-role --role-name "{{ backup_role_name }}" --query 'Role.Arn' --output text)
+    aws rolesanywhere create-profile \
+      --name "{{ backup_profile_name }}" \
+      --role-arns "$ROLE_ARN" \
+      --enabled \
+      --region {{ aws_region | default('us-east-1') }}
+  delegate_to: localhost
+  when: fetched_profile_arn.stdout == "None" or fetched_profile_arn.stdout == ""
+  changed_when: true
+
+- name: 12. Fetch Profile ARN
+  ansible.builtin.shell: |
+    aws rolesanywhere list-profiles \
+      --region {{ aws_region | default('us-east-1') }} \
+      --query "profiles[?name=='{{ backup_profile_name }}'].profileArn | [0]" \
+      --output text
+  delegate_to: localhost
+  register: final_profile_arn
+  changed_when: false
+
+- name: Set Profile ARN Fact
+  set_fact:
+    backup_profile_arn: "{{ final_profile_arn.stdout }}"
+
+- name: 12.5. Fetch Role ARN
+  ansible.builtin.shell: |
+    aws iam get-role --role-name "{{ backup_role_name }}" --query 'Role.Arn' --output text
+  delegate_to: localhost
+  register: fetched_role_arn
+  changed_when: false
+
+- name: Set Role ARN Fact
+  set_fact:
+    backup_role_arn: "{{ fetched_role_arn.stdout }}"
+
+- name: 13. Download aws_signing_helper
+  ansible.builtin.get_url:
+    url: "https://rolesanywhere.amazonaws.com/releases/1.4.0/X86_64/Linux/aws_signing_helper"
+    dest: "/usr/local/bin/aws_signing_helper"
+    mode: '0755'
+  become: true
+
+- name: 14. Install jq and awscli (Required for credential processing and S3)
+  ansible.builtin.package:
+    name:
+      - jq
+      - awscli
+    state: present
+  become: true
+
+- name: 15. Create Backup Script
+  ansible.builtin.template:
+    src: "backup.sh.j2"
+    dest: "/usr/local/bin/backup-postgres.sh"
+    mode: '0755'
+  become: true
+
+- name: 16. Configure Cron Job
+  ansible.builtin.cron:
+    name: "PostgreSQL Backup to S3"
+    job: "/usr/local/bin/backup-postgres.sh >> /var/log/backup-postgres.log 2>&1"
+    minute: "0"
+    hour: "2"
+    state: present
+  become: true

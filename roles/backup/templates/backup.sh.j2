@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+
+# Configuration
+CA_DIR="{{ ca_directory }}"
+CERT_FILE="${CA_DIR}/backup_client.crt"
+KEY_FILE="${CA_DIR}/backup_client.key"
+PROFILE_ARN="{{ backup_profile_arn }}"
+TRUST_ANCHOR_ARN="{{ trust_anchor_arn }}"
+REGION="{{ aws_region | default('us-east-1') }}"
+BUCKET="{{ s3_backup_bucket }}"
+
+BACKUP_DIR="/ridelab-data/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+FILENAME="postgres_backup_${TIMESTAMP}.sql.gz"
+FILEPATH="${BACKUP_DIR}/${FILENAME}"
+
+mkdir -p "$BACKUP_DIR"
+
+echo "Started backup at $(date)"
+
+# 1. Obtain temporary AWS credentials using aws_signing_helper
+echo "Obtaining AWS credentials..."
+eval $(aws_signing_helper credential-process \
+    --certificate "${CERT_FILE}" \
+    --private-key "${KEY_FILE}" \
+    --trust-anchor-arn "${TRUST_ANCHOR_ARN}" \
+    --profile-arn "${PROFILE_ARN}" \
+    --role-arn "{{ backup_role_arn }}" \
+    | jq -r '. | "export AWS_ACCESS_KEY_ID=\(.AccessKeyId)\nexport AWS_SECRET_ACCESS_KEY=\(.SecretAccessKey)\nexport AWS_SESSION_TOKEN=\(.SessionToken)"')
+
+# 2. Dump PostgreSQL Database (Run inside container if needed, here assuming podman exec)
+# Adjust the container name and user as per your setup
+echo "Dumping database..."
+podman exec -i postgres pg_dumpall -U postgres | gzip > "$FILEPATH"
+
+# 3. Upload to S3
+echo "Uploading to S3..."
+aws s3 cp "$FILEPATH" "s3://${BUCKET}/${FILENAME}" --region "$REGION"
+
+# 4. Cleanup local file
+rm "$FILEPATH"
+
+echo "Backup completed successfully at $(date)"
