@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure PATH includes common binary locations for cron
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
 # Configuration
 CA_DIR="{{ ca_directory }}"
 CERT_FILE="${CA_DIR}/backup_client.crt"
