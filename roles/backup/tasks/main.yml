@@ -13,7 +13,8 @@
     mode: '0600'
 
 - name: 2. Generate Certificate Signing Request (CSR)
-  community.crypto.openssl_csr_pipe:
+  community.crypto.openssl_csr:
+    path: "{{ ca_directory }}/{{ ca_csr_name }}"
     privatekey_path: "{{ ca_directory }}/{{ ca_key_name }}"
     common_name: "Ridelab Root CA"
     organization_name: "Ridelab"
@@ -26,14 +27,54 @@
       - cRLSign
       - digitalSignature
     key_usage_critical: true
-  register: ca_csr
 
 - name: 3. Generate Self-Signed Root Certificate (The "Trust Anchor")
   community.crypto.x509_certificate:
     path: "{{ ca_directory }}/{{ ca_cert_name }}"
-    csr_content: "{{ ca_csr.csr }}"
+    csr_path: "{{ ca_directory }}/{{ ca_csr_name }}"
     privatekey_path: "{{ ca_directory }}/{{ ca_key_name }}"
     provider: selfsigned
     # Validity: roughly 100 years
     selfsigned_not_after: "+36500d"
     selfsigned_digest: sha256
+
+- name: 3.5. Read the remote certificate into memory
+  ansible.builtin.slurp:
+    src: "{{ ca_directory }}/{{ ca_cert_name }}"
+  register: remote_cert
+
+- name: 4. Check if Trust Anchor Exists
+  ansible.builtin.shell: |
+    aws rolesanywhere list-trust-anchors \
+      --region {{ aws_region | default('us-east-1') }} \
+      --query "trustAnchors[?name=='Ridelab-Trust-Anchor'].trustAnchorArn | [0]" \
+      --output text
+  delegate_to: localhost
+  register: fetched_arn
+  changed_when: false
+
+- name: 5. Create AWS Roles Anywhere Trust Anchor
+  ansible.builtin.shell: |
+    aws rolesanywhere create-trust-anchor \
+      --name "Ridelab-Trust-Anchor" \
+      --enabled \
+      --source "sourceData={x509CertificateData='{{ remote_cert.content | b64decode }}'},sourceType=CERTIFICATE_BUNDLE" \
+      --region {{ aws_region | default('us-east-1') }}
+  delegate_to: localhost
+  register: trust_anchor_out
+  when: fetched_arn.stdout == "None" or fetched_arn.stdout == ""
+  changed_when: "'trustAnchor' in trust_anchor_out.stdout"
+
+- name: 6. Fetch Trust Anchor ARN (Created or Existing)
+  ansible.builtin.shell: |
+    aws rolesanywhere list-trust-anchors \
+      --region {{ aws_region | default('us-east-1') }} \
+      --query "trustAnchors[?name=='Ridelab-Trust-Anchor'].trustAnchorArn | [0]" \
+      --output text
+  delegate_to: localhost
+  register: final_arn
+  changed_when: false
+
+- name: Set ARN Fact
+  set_fact:
+    trust_anchor_arn: "{{ final_arn.stdout }}"

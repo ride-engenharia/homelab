@@ -2,3 +2,4 @@
 ca_directory: "/ridelab-data/pki"
 ca_key_name: "ridelab_root.key"
 ca_cert_name: "ridelab_root.crt"
+ca_csr_name: "ridelab_root.csr"
