@@ -100,6 +100,7 @@
   loop: "{{ podman_quadlets | default([]) }}"
   register: quadlet_files_result
   no_log: true
+  tags: container_files
 
 - name: Reload systemd user daemon
   ansible.builtin.systemd:

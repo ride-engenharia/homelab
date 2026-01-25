@@ -87,6 +87,6 @@ podman_quadlets:
       - "/home/{{ local_user }}/.config/containers/env/ride-admin.env"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ride-admin.rule=Host(`ride-admin.ride.eng.br`)"
+      - "traefik.http.routers.ride-admin.rule=Host(`sistema.ride.eng.br`) || Host(`vistoria.ride.eng.br`) || Host(`clientes.ride.eng.br`)"
       - "traefik.http.routers.ride-admin.entrypoints=web"
       - "traefik.http.services.ride-admin.loadbalancer.server.port=3000"
