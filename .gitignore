@@ -62,3 +62,4 @@ jellyfin/config/root/
 
 # --- Traefik files ---
 traefik/letsencrypt/acme.json
+.envrc
